@@ -50,3 +50,44 @@ class IshigamiFunction:
 
     def __call__(self, x):
         return self.evaluate(x)
+
+class IshigamiFunctionPolynomial:
+
+    """
+    A class to represent the Ishigami function, a well-known test function for uncertainty quantification and sensitivity analysis.
+
+    Attributes
+    ----------
+    a : float
+        The coefficient for the second term of the Ishigami function. Default is 7.
+    b : float
+        The coefficient for the third term of the Ishigami function. Default is 0.1.
+    c : int
+        The exponent for the third term of the Ishigami function. Default is 3.
+
+    Methods
+    -------
+    evaluate(x)
+        Evaluates the Ishigami function at a given 3-dimensional input vector x.
+    __repr__()
+        Returns a string representation of the IshigamiFunction instance.
+    __call__(x)
+        Allows the instance to be called as a function to evaluate the Ishigami function at a given input vector x.
+    """
+
+    def __init__(self, a=7, b=0.1, c:int = 3):
+        self.a = a
+        self.b = b
+        self.c = c
+
+    def evaluate(self, x):
+        if len(x) != 3:
+            raise ValueError("Input vector must have exactly 3 dimensions.")
+        x1, x2, x3 = x
+        return np.sin(x1) + self.a * np.sin(x2)**2 + self.b * x3**self.c * np.sin(x1)
+
+    def __repr__(self):
+        return f"IshigamiFunctionPolynomial(a={self.a}, b={self.b}, c={self.c})"
+
+    def __call__(self, x):
+        return self.evaluate(x)

@@ -40,6 +40,11 @@ class IshigamiFunction:
         self.b = b
 
     def evaluate(self, x):
+        x = np.asarray(x)
+        if x.shape[1] != 3:
+            raise ValueError("Each input vector must have exactly 3 dimensions.")
+        x1, x2, x3 = x[:, 0], x[:, 1], x[:, 2]
+        return np.sin(x1) + self.a * np.sin(x2)**2 + self.b * x3**4 * np.sin(x1)
         if len(x) != 3:
             raise ValueError("Input vector must have exactly 3 dimensions.")
         x1, x2, x3 = x

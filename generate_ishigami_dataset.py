@@ -17,3 +17,6 @@ if __name__ == "__main__":
 
     generate_random_dataset(100)
     print(f"Dataset saved to {PATH}")
+    PATH = "code/input/data/ishigami_large_dataset.csv"
+    generate_random_dataset(1000)
+    print(f"Dataset saved to {PATH}")

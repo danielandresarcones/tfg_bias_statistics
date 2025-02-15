@@ -113,7 +113,6 @@ def plot_proportion_no_bias(inference_no_bias, X, sigma=0.1):
     plt.ylabel("Proportion of Points Above Threshold")
     plt.title("Proportion of Points Above Threshold for No Bias Model")
     plt.legend()
-    plt.show()
 
     plt.savefig("./code/output/figures/ishigami_proportion_no_bias.png")
     plt.close()
@@ -133,7 +132,6 @@ def plot_proportion_bias(inference_bias, X, sigma=0.1, pce_order=2):
     plt.ylabel("Proportion of Points Above Threshold")
     plt.title("Proportion of Points Above Threshold for Bias Model")
     plt.legend()
-    plt.show()
     
     plt.savefig("./code/output/figures/ishigami_proportion_bias.png")
     plt.close()
@@ -152,7 +150,6 @@ def validate_true_proportion(X):
     plt.xlabel("Threshold")
     plt.ylabel("True Proportion")
     plt.title("True Proportion of Points Above Threshold")
-    # plt.show()
 
     plt.savefig("./code/output/figures/ishigami_true_proportion.png")
     plt.close()
@@ -179,7 +176,6 @@ def compare_proportions(inference_no_bias, inference_bias, X, sigma=0.1, pce_ord
     plt.ylabel("Proportion of Points Above Threshold")
     plt.title("Proportion of Points Above Threshold for No Bias and Bias Models")
     plt.legend()
-    plt.show()
 
     plt.savefig("./code/output/figures/ishigami_proportion_comparison.png")
     plt.close()

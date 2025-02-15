@@ -63,7 +63,7 @@ class IshigamiBiased(ForwardModelBase):
         sparse_evals = []
         for node in sparse_quads[0][0]:
             self.ishigami.b = node
-            sparse_evals.append(self.ishigami([x1, x2, x3]))
+            sparse_evals.append(self.ishigami(np.array([x1, x2, x3]).transpose()))
 
         # fit the polynomial chaos expansion
         fitted_sparse = cp.fit_quadrature(
@@ -132,7 +132,7 @@ def run_calibrate_ishigami_bias(degree=3):
     problem.info(print_header=True)
 
     solver = EmbeddedPCESolver(problem, show_progress=True)
-    inference_data = solver.run(n_steps=20, n_initial_steps=20)
+    inference_data = solver.run(n_steps=2000, n_initial_steps=20)
 
     true_values = {"a": 7.0, "b": 0.1}
     # true_values = {"a": 7.0, "b": 0.1, "sigma": 0.1}

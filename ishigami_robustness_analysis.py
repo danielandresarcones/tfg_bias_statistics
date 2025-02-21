@@ -110,7 +110,7 @@ def solve_inverse_problem(data: pd.DataFrame, full_data: pd.DataFrame):
     problem.add_likelihood_model(likelihood_model)
 
     solver = EmbeddedPCESolver(problem, show_progress=True)
-    inference_data = solver.run(n_steps=2000, n_initial_steps=20)
+    inference_data = solver.run(n_steps=600, n_initial_steps=100)
 
     true_values = {"a": 7.0, "b": 0.1}
     # true_values = {"a": 7.0, "b": 0.1, "sigma": 0.1}
@@ -121,14 +121,14 @@ def solve_inverse_problem(data: pd.DataFrame, full_data: pd.DataFrame):
         "x3": full_data["x3"].values,
         "a": inference_data.posterior["$a$"].mean().values,
         "b": inference_data.posterior["$b$"].mean().values,
-        "sigma_b": inference_data.posterior["$sigma_b$"].mean().values,    
+        "sigma_b": inference_data.posterior["$\sigma_b$"].mean().values,    
     }
     predictions_response = forward_model.response(predictions_input_dict)
     predictions_dict = {
         "mean":cp.E(predictions_response["y"], predictions_response["dist"]),
         "std":cp.Std(predictions_response["y"], predictions_response["dist"])
     }
-    return predictions_dict
+    return predictions_dict, inference_data
 
 def calculate_D_phi(S, Y, predictions_mean, predictions_std):
     """
@@ -250,31 +250,57 @@ def sobol_analysis():
 def influence_analysis(data: pd.DataFrame, n_segments: int, output_path: str):
 
     segmented_data = segment_data(data, n_segments)
-    full_predictions = solve_inverse_problem(data, data)
-    influence_matrix_mean = np.zeros((len(data), len(data)))
-    influence_matrix_std = np.zeros((len(data), len(data)))
+    full_predictions, full_inference_data = solve_inverse_problem(data, data)
+
+    influence_matrix_mean = np.zeros((n_segments**3, n_segments**3))
+    influence_matrix_std = np.zeros((n_segments**3, n_segments**3))
+    a_mean_list = np.zeros((n_segments**3))
+    b_mean_list = np.zeros((n_segments**3))
+    sigma_mean_list = np.zeros((n_segments**3))
+    a_full = full_inference_data.posterior["$a$"].mean().values
+    b_full = full_inference_data.posterior["$b$"].mean().values
+    sigma_full = full_inference_data.posterior["$\sigma_b$"].mean().values
 
     for i in tqdm(range(n_segments**3), desc="Influence Analysis Progress"):
-        segment_data = segmented_data[segmented_data["segment_index"] != i]
-        predictions = solve_inverse_problem(segment_data, data)
-        influence_matrix_mean[:, i] = full_predictions["mean"] - predictions["mean"]
-        influence_matrix_std[:, i] = full_predictions["std"] - predictions["std"]
+        isegmented_data = segmented_data[segmented_data["segment_index"] != i]
+        predictions, inference_data = solve_inverse_problem(isegmented_data, data)
+        mean_differences = full_predictions["mean"] - predictions["mean"]
+        std_differences = full_predictions["std"] - predictions["std"]
+        a_mean_list[i] = inference_data.posterior["$a$"].mean().values
+        b_mean_list[i] = inference_data.posterior["$b$"].mean().values
+        sigma_mean_list[i] = inference_data.posterior["$\sigma_b$"].mean().values
+        for segment_index in range(n_segments**3):
+            segment_mean_diff = mean_differences[segmented_data["segment_index"] == segment_index]
+            influence_matrix_mean[segment_index, i] = np.mean(segment_mean_diff)
+            
+            segment_std_diff = std_differences[segmented_data["segment_index"] == segment_index]
+            influence_matrix_std[segment_index, i] = np.mean(segment_std_diff)
 
     influence_matrix_mean = influence_matrix_mean.transpose()
     influence_matrix_std = influence_matrix_std.transpose()
 
+    # Save influence matrices to files
+    np.savetxt(output_path.replace('.png', '_influence_mean.csv'), influence_matrix_mean, delimiter=',')
+    np.savetxt(output_path.replace('.png', '_influence_std.csv'), influence_matrix_std, delimiter=',')
+    np.savetxt(output_path.replace('.png', '_a_mean.csv'), a_mean_list, delimiter=',')
+    np.savetxt(output_path.replace('.png', '_b_mean.csv'), b_mean_list, delimiter=',')
+    np.savetxt(output_path.replace('.png', '_sigma_mean.csv'), sigma_mean_list, delimiter=',')
+
+    return influence_matrix_mean, influence_matrix_std, a_mean_list, b_mean_list, sigma_mean_list, a_full, b_full, sigma_full
+
+def plot_influence_matrix(influence_matrix_mean, influence_matrix_std, output_path: str):
     plt.figure(figsize=(12, 6))
 
     # Plot heatmap for influence matrix mean
     plt.subplot(1, 2, 1)
-    sns.heatmap(influence_matrix_mean, cmap="viridis", cbar=True)
+    sns.heatmap(influence_matrix_mean, cmap="viridis", cbar=True, vmin=-0.10, vmax=0.10)
     plt.title("Influence Matrix Mean")
     plt.xlabel("Segment Index")
     plt.ylabel("Data Index")
 
     # Plot heatmap for influence matrix std
     plt.subplot(1, 2, 2)
-    sns.heatmap(influence_matrix_std, cmap="viridis", cbar=True)
+    sns.heatmap(influence_matrix_std, cmap="viridis", cbar=True, vmin=-0.10, vmax=0.10)
     plt.title("Influence Matrix Std")
     plt.xlabel("Segment Index")
     plt.ylabel("Data Index")
@@ -282,7 +308,36 @@ def influence_analysis(data: pd.DataFrame, n_segments: int, output_path: str):
     plt.tight_layout()
     plt.savefig(output_path)
 
-    return influence_matrix_mean, influence_matrix_std
+def plot_predictions_influence(a_mean_list, b_mean_list, sigma_mean_list, a_full, b_full, sigma_full, output_path: str):
+    fig = plt.figure(figsize=(12, 6))
+    gs = fig.add_gridspec(1, 3)
+
+    # Plot a_mean
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax1.plot(a_mean_list, color='blue')
+    ax1.axhline(y=a_full, color='black', linestyle='--')
+    ax1.set_title("Influence on a")
+    ax1.set_xlabel("Data Index")
+    ax1.set_ylabel("Mean of a")
+
+    # Plot b_mean
+    ax2 = fig.add_subplot(gs[0, 1])
+    ax2.plot(b_mean_list, color='red')
+    ax2.axhline(y=b_full, color='black', linestyle='--')
+    ax2.set_title("Influence on b")
+    ax2.set_xlabel("Data Index")
+    ax2.set_ylabel("Mean of b")
+
+    # Plot sigma_mean
+    ax3 = fig.add_subplot(gs[0, 2])
+    ax3.plot(sigma_mean_list, color='green')
+    ax3.axhline(y=sigma_full, color='black', linestyle='--')
+    ax3.set_title("Influence on sigma")
+    ax3.set_xlabel("Data Index")
+    ax3.set_ylabel("Mean of sigma")
+
+    plt.tight_layout()
+    plt.savefig(output_path)
 
 
 def sensitivity_analysis(influence_matrix_mean, influence_matrix_std, output_path: str):
@@ -290,25 +345,34 @@ def sensitivity_analysis(influence_matrix_mean, influence_matrix_std, output_pat
     sensitivity_matrix_mean = influence_matrix_mean.transpose() @ influence_matrix_mean
     sensitivity_matrix_std = influence_matrix_std.transpose() @ influence_matrix_std
 
-    plt.figure(figsize=(12, 6))
+    # Save sensitivity matrices to files
+    np.savetxt(output_path.replace('.png', '_sensitivity_mean.csv'), sensitivity_matrix_mean, delimiter=',')
+    np.savetxt(output_path.replace('.png', '_sensitivity_std.csv'), sensitivity_matrix_std, delimiter=',')
 
+    return sensitivity_matrix_mean, sensitivity_matrix_std
+    
+    
+def plot_sensitivity_matrix(sensitivity_matrix_mean, sensitivity_matrix_std, output_path:str):
+    plt.figure(figsize=(12, 6))
     # Plot heatmap for sensitivity matrix mean
     plt.subplot(1, 2, 1)
-    sns.heatmap(sensitivity_matrix_mean, cmap="viridis", cbar=True)
+    sns.heatmap(sensitivity_matrix_mean, cmap="plasma", cbar=True, vmin=-0.05, vmax=0.05)
     plt.title("Sensitivity Matrix Mean")
     plt.xlabel("Data Index")
     plt.ylabel("Data Index")
 
     # Plot heatmap for sensitivity matrix std
     plt.subplot(1, 2, 2)
-    sns.heatmap(sensitivity_matrix_std, cmap="viridis", cbar=True)
+    sns.heatmap(sensitivity_matrix_std, cmap="plasma", cbar=True, vmin=-0.05, vmax=0.05)
+    plt.title("Sensitivity Matrix Std")
+    plt.xlabel("Data Index")
+    plt.ylabel("Data Index")
     plt.title("Sensitivity Matrix Std")
     plt.xlabel("Data Index")
     plt.ylabel("Data Index")
 
     plt.tight_layout()
     plt.savefig(output_path)
-    
     
 
 if __name__ == "__main__":
@@ -331,5 +395,19 @@ if __name__ == "__main__":
 
     robustness_analysis(data, predictions_bias_mean, predictions_bias_std, 3, './code/output/figures/ishigami_robustness.png') 
 
-    influence_matrix_mean, influence_matrix_std = influence_analysis(data, 3, './code/output/figures/ishigami_influence.png')
-    sensitivity_analysis(influence_matrix_mean, influence_matrix_std, './code/output/figures/ishigami_sensitivity.png')
+    # influence_matrix_mean, influence_matrix_std, a_mean_list, b_mean_list, sigma_mean_list, a_full, b_full, sigma_full = influence_analysis(data, 3, './code/output/figures/ishigami_influence.png')
+    # sensitivity_matrix_mean, sensitivity_matrix_std = sensitivity_analysis(influence_matrix_mean, influence_matrix_std, './code/output/figures/ishigami_sensitivity.png')
+
+    influence_matrix_mean = np.loadtxt('./code/output/figures/ishigami_influence_influence_mean.csv', delimiter=',')
+    influence_matrix_std = np.loadtxt('./code/output/figures/ishigami_influence_influence_std.csv', delimiter=',')
+    # a_mean_list = np.loadtxt('./code/output/figures/ishigami_a_mean.csv', delimiter=',')
+    # b_mean_list = np.loadtxt('./code/output/figures/ishigami_b_mean.csv', delimiter=',')
+    # sigma_mean_list = np.loadtxt('./code/output/figures/ishigami_sigma_mean.csv', delimiter=',')
+    # a_full = np.loadtxt('./code/output/figures/ishigami_a_full.csv', delimiter=',')
+    # b_full = np.loadtxt('./code/output/figures/ishigami_b_full.csv', delimiter=',')
+    # sigma_full = np.loadtxt('./code/output/figures/ishigami_sigma_full.csv', delimiter=',')
+    sensitivity_matrix_mean, sensitivity_matrix_std = sensitivity_analysis(influence_matrix_mean, influence_matrix_std, './code/output/figures/ishigami_sensitivity.png')
+
+    plot_influence_matrix(influence_matrix_mean, influence_matrix_std, './code/output/figures/ishigami_influence.png')
+    plot_sensitivity_matrix(sensitivity_matrix_mean, sensitivity_matrix_std, './code/output/figures/ishigami_sensitivity.png')
+    # plot_predictions_influence(a_mean_list, b_mean_list, sigma_mean_list, a_full, b_full, sigma_full, './code/output/figures/ishigami_predictions_influence.png')

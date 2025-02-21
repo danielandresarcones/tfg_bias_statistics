@@ -31,14 +31,19 @@ def get_true_proporition(threshold, X):
 
     return true_proporition
 
-def get_proportion_no_bias(inference_no_bias, threshold, X, sigma=0.1):
+def get_proportion_no_bias(inference_bias, threshold, X, sigma=0.1):
+
+    mean_a_bias = inference_bias.posterior["$a$"].mean().values
+    mean_b_bias = inference_bias.posterior["$b$"].mean().values
+
+    return evaluate_proportion_no_bias(mean_a_bias, mean_b_bias, threshold, X, sigma)
+
+def evaluate_proportion_no_bias(sample_a_no_bias, sample_b_no_bias, threshold, X, sigma=0.1):
     """Get the proportion of points above the threshold for the no bias model."""
-    mean_a_no_bias = inference_no_bias.posterior["$a$"].mean().values
-    mean_b_no_bias = inference_no_bias.posterior["$b$"].mean().values
 
     ishigami_no_bias = IshigamiFunctionPolynomial(c=3)
-    ishigami_no_bias.a = mean_a_no_bias
-    ishigami_no_bias.b = mean_b_no_bias
+    ishigami_no_bias.a = sample_a_no_bias
+    ishigami_no_bias.b = sample_b_no_bias
 
     ishigami_no_bias_plus_std = lambda x: ishigami_no_bias(x) + sigma
     ishigami_no_bias_minus_std = lambda x: ishigami_no_bias(x) - sigma
@@ -52,17 +57,12 @@ def get_proportion_no_bias(inference_no_bias, threshold, X, sigma=0.1):
 
     return proportion_no_bias_minus_std, proportion_no_bias, proportion_no_bias_plus_std
 
-def get_proportion_bias(inference_bias, threshold, X, sigma=0.1, pce_order=2):
-
-    mean_a_bias = inference_bias.posterior["$a$"].mean().values
-    mean_b_bias = inference_bias.posterior["$b$"].mean().values
-    mean_sigma_b = inference_bias.posterior["$\sigma_b$"].mean().values
-
+def evaluate_proportion_bias(sample_a_bias, sample_b_bias, sample_sigma_b, threshold, X, pce_order=2):
     ishigami_bias = IshigamiFunctionPolynomial(c=3)
-    ishigami_bias.a = mean_a_bias
-    ishigami_bias.b = mean_b_bias
+    ishigami_bias.a = sample_a_bias
+    ishigami_bias.b = sample_b_bias
 
-    b_dist = cp.Normal(mean_b_bias, mean_sigma_b)
+    b_dist = cp.Normal(sample_b_bias, sample_sigma_b)
     expansion = cp.generate_expansion(pce_order, b_dist)
     sparse_quads = cp.generate_quadrature(pce_order, b_dist, rule="Gaussian")
     sparse_evals = []
@@ -85,6 +85,17 @@ def get_proportion_bias(inference_bias, threshold, X, sigma=0.1, pce_order=2):
     proportion_bias_minus_std = threshold_indices_bias_minus_std.sum() / threshold_indices_bias_minus_std.size
 
     return proportion_bias_minus_std, proportion_bias, proportion_bias_plus_std
+
+
+def get_proportion_bias(inference_bias, threshold, X, sigma=0.1, pce_order=2):
+
+    mean_a_bias = inference_bias.posterior["$a$"].mean().values
+    mean_b_bias = inference_bias.posterior["$b$"].mean().values
+    mean_sigma_b = inference_bias.posterior["$\sigma_b$"].mean().values
+
+    return evaluate_proportion_bias(mean_a_bias, mean_b_bias, mean_sigma_b, threshold, X, pce_order)
+
+    
 
 def threshold_analysis(get_proportion_function, inference_data, thresholds, X, sigma=0.1, **kwargs):
 

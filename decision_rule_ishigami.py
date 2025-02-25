@@ -54,9 +54,9 @@ def decision_loss_no_bias(mean_z, std_z, zlim, C_FN, C_FP, decision):
     """    
 
     if decision:
-        loss = C_FP * (mean_z - zlim)**2
+        loss = C_FP * (mean_z - zlim)**2 if mean_z < zlim else 0.0
     else:
-        loss = C_FN  * (mean_z - zlim)**2
+        loss = C_FN  * (mean_z - zlim)**2 if mean_z > zlim else 0.0
     return loss
 
 
@@ -178,9 +178,10 @@ def plot_decision_costs_comparison(decisions_df, output_path):
 
     # Plot the decisions
     decisions_df = decisions_df.map(lambda x: 1 if x else 0)
-    decisions_df.T.plot(style='o', figsize=(10, 6))
+    decisions_df.T.plot(style='-o', figsize=(10, 6))
     plt.xlabel('Thresholds')
     plt.xlim(-5, 5)
+    plt.xticks(np.linspace(-5, 5, 11))
     plt.ylabel('Decision (0: False, 1: True)')
     plt.ylim(-0.1,1.1)
     plt.yticks([0, 1])
@@ -208,6 +209,7 @@ if __name__ == "__main__":
 
     # Extract features
     decisions_no_bias = compare_decision_costs(inference_data_no_bias, data, C_FN_array, C_FP_array, z_lim, threshold_array, output_path='./code/output/results/decisions_no_bias.csv', bias=False)
-    plot_decision_costs_comparison(decisions_no_bias, output_path='./code/output/decisions_no_bias.png')
-    decisions_bias = compare_decision_costs(inference_data_bias, data, C_FN_array, C_FP_array, z_lim, threshold_array, output_path='./code/output/results/decisions_no_bias.csv', bias=True)
-    plot_decision_costs_comparison(decisions_bias, output_path='./code/output/decisions_bias.png')
+    plot_decision_costs_comparison(decisions_no_bias, output_path='./code/output/figures/decisions_no_bias.png')
+    decisions_bias = compare_decision_costs(inference_data_bias, data, C_FN_array, C_FP_array, z_lim, threshold_array, output_path='./code/output/results/decisions_bias.csv', bias=True)
+    # decisions_bias = pd.read_csv('./code/output/results/decisions_bias.csv', header=[0], index_col=[0, 1])
+    plot_decision_costs_comparison(decisions_bias, output_path='./code/output/figures/decisions_bias.png')

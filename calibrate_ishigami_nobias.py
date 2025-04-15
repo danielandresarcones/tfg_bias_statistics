@@ -109,5 +109,6 @@ if __name__ == "__main__":
         emcee_solver.problem,
         focus_on_posterior=True,
         show_legends=True,
-        title="Sampling results from emcee-Solver (pair plot)",
+        title="Gráfico de pares (sin sesgo)",
+        # title="Sampling results from emcee-Solver (pair plot)",
     )

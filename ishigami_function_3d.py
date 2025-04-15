@@ -82,7 +82,7 @@ class IshigamiFunctionPolynomial:
         self.c = c
 
     def evaluate(self, x):
-        x = np.asarray(x)
+        x = np.asarray(x).transpose()
         if x.shape[1] != 3:
             raise ValueError("Each input vector must have exactly 3 dimensions.")
         x1, x2, x3 = x[:, 0], x[:, 1], x[:, 2]

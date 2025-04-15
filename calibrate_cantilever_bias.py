@@ -13,83 +13,67 @@ from probeye.inference.bias.likelihood_models import (
     IndependentNormalModelError,
 )
 
-from probeye.inference.emcee.solver import EmceeSolver
-
 from probeye.postprocessing.sampling_plots import create_pair_plot
 from probeye.postprocessing.sampling_plots import create_posterior_plot
 from probeye.postprocessing.sampling_plots import create_trace_plot
 
-from ishigami_function_3d import IshigamiFunctionPolynomial
+from cantilever_function import CantileverBeam
 import pandas as pd
 import arviz as az
 
 
-class IshigamiBiased(ForwardModelBase):
-    def __init__(self, name = "Ishigami", degree=2, pce_order=2):
+class CantileverBiased(ForwardModelBase):
+    def __init__(self, name = "Cantilever"):
         super().__init__(name=name)
-        self.degree = degree
-        self.ishigami = IshigamiFunctionPolynomial(c=self.degree)
-        self.pce_order = pce_order
-
+        self.cantilever = CantileverBeam(length=5.0, height=0.3, young_modulus=30e9, yield_stress=1e24, softening_factor=0.99)
+        self.pce_order = 2
     def interface(self):
-        self.parameters = ["a", "b", "sigma_b"]
-        self.input_sensors = [Sensor("x1"), Sensor("x2"), Sensor("x3")]
-        self.output_sensors = Sensor("y", std_model="sigma")
+        self.parameters = ["E", "sigma_E"]
+        self.input_sensors = [Sensor("Load")]
+        self.output_sensors = Sensor("Displacement", std_model="sigma")
 
     def response(self, inp: dict) -> dict:
-        x1 = inp["x1"]
-        x2 = inp["x2"]
-        x3 = inp["x3"]
-        a = inp["a"]
-        b = inp["b"]
-        sigma_b = inp["sigma_b"]
+        E=inp["E"]
+        sigma_E = inp["sigma_E"]
+        loads = inp["Load"]
 
-        self.ishigami.a = a
-        self.ishigami.b = b
-         # define the distribution for the bias term
-        b_dist = cp.Normal(b, sigma_b)
+        E_dist = cp.Normal(E, sigma_E)
 
         # generate the polynomial chaos expansion
-        expansion = cp.generate_expansion(self.pce_order, b_dist)
+        expansion = cp.generate_expansion(self.pce_order, E_dist)
 
         # generate quadrature nodes and weights
         sparse_quads = cp.generate_quadrature(
-            self.pce_order, b_dist, rule="Gaussian"
+            self.pce_order, E_dist, rule="Gaussian"
         )
         # evaluate the model at the quadrature nodes
         sparse_evals = []
         for node in sparse_quads[0][0]:
-            self.ishigami.b = node
-            sparse_evals.append(self.ishigami(np.array([x1, x2, x3]).transpose()))
+            self.cantilever.current_young_modulus = node
+            sparse_evals.append(self.cantilever.deflection(loads))
 
         # fit the polynomial chaos expansion
         fitted_sparse = cp.fit_quadrature(
             expansion, sparse_quads[0], sparse_quads[1], sparse_evals
         )
-        return {"y": fitted_sparse, "dist": b_dist}
-
+        return {"Displacement": fitted_sparse, "dist": E_dist}
     
-def run_calibrate_ishigami_bias(degree=3):
+if __name__ == "__main__":
    
-    problem = InverseProblem("Ishigami with Gaussian noise", print_header=False)
+    problem = InverseProblem("Cantilever with Gaussian noise", print_header=False)
 
     problem.add_parameter(
-        "a",
-        tex="$a$",
-        info="Value of a",
-        prior=Normal(mean=2.0, std=1.0),
+        "E",
+        domain="(0, +oo)",
+        tex=r"$E$",
+        info="Young's modulus",
+        prior=LogNormal(mean=23, std=0.5)
     )
     problem.add_parameter(
-        "b",
-        info="Value of b",
-        tex="$b$",
-        prior=Normal(mean=1.0, std=1.0),
-    )
-    problem.add_parameter(
-        "sigma_b",
-        info="Bias value of b",
-        tex="$\sigma_b$",
-        prior=LogNormal(mean=-2, std=0.5),
+        "sigma_E",
+        info="Bias value of E",
+        tex="$\sigma_E$",
+        prior=LogNormal(mean=21, std=1),
     )
     problem.add_parameter(
         "sigma",
@@ -97,29 +81,26 @@ def run_calibrate_ishigami_bias(degree=3):
         tex=r"$\sigma$",
         info="Standard deviation, of zero-mean Gaussian noise model",
         # prior=Uniform(low=0.0, high=0.8),
-        value=0.1,
+        value=0.01,
     )
 
     # load data
 
-    data_path = "code/input/data/ishigami_dataset.csv"
+    data_path = "code/input/data/cantilever_dataset.csv"
     data = pd.read_csv(data_path)
-    x1 = data["x1"].values
-    x2 = data["x2"].values
-    x3 = data["x3"].values
-    y = data["y"].values
+    loads = data["Load"].values
+    displacements = data["Deflection"].values
 
     # experimental data
     problem.add_experiment(
         name="TestSeries_1",
-        sensor_data={"x1": x1, "x2": x2, "x3": x3, "y": y},
+        sensor_data={"Load": loads, "Displacement": displacements},
     )
 
     # forward model
-    forward_model = IshigamiBiased(degree=degree)
+    forward_model = CantileverBiased()
     problem.add_forward_model(forward_model, experiments="TestSeries_1")
 
-    # likelihood model
     dummy_lmodel = EmbeddedLikelihoodBaseModel(
     experiment_name="TestSeries_1", l_model="independent_normal"
     )
@@ -129,13 +110,11 @@ def run_calibrate_ishigami_bias(degree=3):
     problem.info(print_header=True)
 
     solver = EmbeddedPCESolver(problem, show_progress=True)
-    inference_data = solver.run(n_steps=2000, n_initial_steps=20)
+    inference_data = solver.run(n_steps=2000, n_initial_steps=200)
 
-    true_values = {"a": 7.0, "b": 0.1}
-    # true_values = {"a": 7.0, "b": 0.1, "sigma": 0.1}
+    # true_values ={ "E":30e9}
 
-
-    output_path = f"code/output/results/calibrate_bias_ishigami_{degree}.az"
+    output_path = f"code/output/results/calibrate_bias_cantilever.az"
     az.to_netcdf(inference_data, output_path)
 
     pair_plot_array = create_pair_plot(
@@ -143,20 +122,24 @@ def run_calibrate_ishigami_bias(degree=3):
         solver.problem,
         focus_on_posterior=True,
         show_legends=True,
-        show=False,
+        # true_values= true_values,
         # title="Sampling results from emcee-Solver (pair plot)",
-        title="Gráfico de pares (con sesgo)",
+        title = "Gráfico de pares (con sesgo)",
     )
-    pair_plot_array.ravel()[0].figure.savefig(f"code/output/figures/pair_plot_ishigami_{degree}.png")
-  
+    pair_plot_array.ravel()[0].figure.savefig(f"code/output/figures/pair_plot_cantilever_bias.png")
     trace_plot_array = create_trace_plot(
         inference_data,
         solver.problem,
         show=False,
         # title="Sampling results from emcee-Solver (trace plot)",
-        title="Trazado de la cadena (con sesgo)",
+        title = "Gráfico de trazas (con sesgo)",
     )
-    trace_plot_array.ravel()[0].figure.savefig(f"code/output/figures/trace_plot_ishigami_{degree}.png")
-
-if __name__ == "__main__":
-    run_calibrate_ishigami_bias(degree=3)
+    trace_plot_array.ravel()[0].figure.savefig(f"code/output/figures/trace_plot_cantilever_bias.png")
+    posterior_plot = create_posterior_plot(
+        inference_data,
+        solver.problem,
+        show=False,
+        # title="Sampling results from emcee-Solver (trace plot)",
+        title="Gráfico de posterior (con sesgo)",
+    )
+    posterior_plot.ravel()[0].figure.savefig(f"code/output/figures/posterior_plot_cantilever_bias.png")

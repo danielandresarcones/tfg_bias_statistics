@@ -1,0 +1,30 @@
+name: tfg-uncertainty
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - seaborn
+  - arviz
+  - ipython
+  - jupyter
+  - jupyterlab
+  - doit
+  - scikit-learn
+  - pymc>=5.0.0
+  - theano-pymc
+  - tqdm
+  - pytest
+  - pip
+  - pip:
+    - git+https://github.com/BAMresearch/probeye.git@embedded_bias
+    - corner
+    - statsmodels
+    - uncertainties
+    - emcee
+    - pyDOE
+    - SALib

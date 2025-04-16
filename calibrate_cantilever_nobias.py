@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     # load data
 
-    data_path = "code/input/data/cantilever_dataset.csv"
+    data_path = "input/data/cantilever_dataset.csv"
     data = pd.read_csv(data_path)
     loads = data["Load"].values
     displacements = data["Deflection"].values
@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     true_values ={ "E":30e9}
 
-    output_path = f"code/output/results/calibrate_no_bias_cantilever.az"
+    output_path = f"output/results/calibrate_no_bias_cantilever.az"
     az.to_netcdf(inference_data, output_path)
 
     # pair_plot_array = create_pair_plot(
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     #     true_values= true_values,
     #     title="Sampling results from emcee-Solver (pair plot)",
     # )
-    # pair_plot_array.ravel()[0].figure.savefig(f"code/output/figures/pair_plot_cantilever_no_bias.png")
+    # pair_plot_array.ravel()[0].figure.savefig(f"output/figures/pair_plot_cantilever_no_bias.pdf")
     trace_plot_array = create_trace_plot(
         inference_data,
         emcee_solver.problem,
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         # title="Sampling results from emcee-Solver (trace plot)",
         title="Trace plot (no bias)",
     )
-    trace_plot_array.ravel()[0].figure.savefig(f"code/output/figures/trace_plot_cantilever_no_bias.png")
+    trace_plot_array.ravel()[0].figure.savefig(f"output/figures/trace_plot_cantilever_no_bias.pdf")
     posterior_plot = create_posterior_plot(
         inference_data,
         emcee_solver.problem,
@@ -112,4 +112,4 @@ if __name__ == "__main__":
         # title="Sampling results from emcee-Solver (trace plot)",
         title="Posterior plot (no bias)",
     )
-    posterior_plot.figure.savefig(f"code/output/figures/posterior_plot_cantilever_no_bias.png")
+    posterior_plot.figure.savefig(f"output/figures/posterior_plot_cantilever_no_bias.pdf")

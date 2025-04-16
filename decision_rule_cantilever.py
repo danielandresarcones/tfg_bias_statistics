@@ -154,7 +154,7 @@ def analyze_decision_rule(inference_data, data, C_FN, C_FP, z_lim, thresholds_ar
     # if bias:
     #     decisions_df['evmi'] = evmi
     #     decisions_df['evoi'] = evoi
-    decisions_df.to_csv(f'./code/output/decisions_array_{C_FN}_{C_FP}.csv', index=False)
+    decisions_df.to_csv(f'./output/decisions_array_{C_FN}_{C_FP}.csv', index=False)
 
     return decisions_array
 
@@ -213,9 +213,9 @@ def plot_decision_costs_comparison(decisions_df, output_path):
 
 if __name__ == "__main__":
     # Load the posterior samples
-    inference_data_bias = az.from_netcdf("./code/output/results/calibrate_bias_cantilever.az")
-    inference_data_no_bias = az.from_netcdf("./code/output/results/calibrate_no_bias_cantilever.az")
-    data_path = './code/input/data/cantilever_dataset.csv'
+    inference_data_bias = az.from_netcdf("./output/results/calibrate_bias_cantilever.az")
+    inference_data_no_bias = az.from_netcdf("./output/results/calibrate_no_bias_cantilever.az")
+    data_path = './input/data/cantilever_dataset.csv'
 
     # Set the decision threshold
     z_lim = np.linspace(0.0, 0.3, 15)
@@ -230,8 +230,8 @@ if __name__ == "__main__":
     data = pd.read_csv(data_path)
 
     # Extract features
-    decisions_no_bias = compare_decision_costs(inference_data_no_bias, data, C_FN_array, C_FP_array, z_lim, threshold_array, output_path='./code/output/results/decisions_cantilever_no_bias.csv', bias=False)
-    plot_decision_costs_comparison(decisions_no_bias, output_path='./code/output/figures/decisions_cantilever_no_bias.png')
-    decisions_bias = compare_decision_costs(inference_data_bias, data, C_FN_array, C_FP_array, z_lim, threshold_array, output_path='./code/output/results/decisions_cantilever_bias.csv', bias=True)
-    # decisions_bias = pd.read_csv('./code/output/results/decisions_bias.csv', header=[0], index_col=[0, 1])
-    plot_decision_costs_comparison(decisions_bias, output_path='./code/output/figures/decisions_cantilever_bias.png')
+    decisions_no_bias = compare_decision_costs(inference_data_no_bias, data, C_FN_array, C_FP_array, z_lim, threshold_array, output_path='./output/results/decisions_cantilever_no_bias.csv', bias=False)
+    plot_decision_costs_comparison(decisions_no_bias, output_path='./output/figures/decisions_cantilever_no_bias.pdf')
+    decisions_bias = compare_decision_costs(inference_data_bias, data, C_FN_array, C_FP_array, z_lim, threshold_array, output_path='./output/results/decisions_cantilever_bias.csv', bias=True)
+    # decisions_bias = pd.read_csv('./output/results/decisions_bias.csv', header=[0], index_col=[0, 1])
+    plot_decision_costs_comparison(decisions_bias, output_path='./output/figures/decisions_cantilever_bias.pdf')

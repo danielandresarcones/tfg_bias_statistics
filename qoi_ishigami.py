@@ -14,7 +14,7 @@ def evaluate_threshold(regressor, threshold, X):
     
     y_pred = np.zeros(X.shape[0])
     y_indices = np.zeros(X.shape[0])
-    y_pred = regressor(X)
+    y_pred = regressor(X.transpose())
     y_indices[y_pred > threshold] = 1
     return y_indices
 
@@ -24,8 +24,9 @@ def get_true_proporition(threshold, X):
 
     # Create an instance of the Ishigami function
     ishigami = IshigamiFunction(**true_values)
+    ishigami_true = lambda x: ishigami(x.transpose())
 
-    true_threshold_indices = evaluate_threshold(ishigami, threshold, X)
+    true_threshold_indices = evaluate_threshold(ishigami_true, threshold, X)
     true_proporition = true_threshold_indices.sum() / true_threshold_indices.size
     # print(f"True proportion of points above threshold: {true_proporition:.2f}")
 
@@ -68,7 +69,7 @@ def evaluate_proportion_bias(sample_a_bias, sample_b_bias, sample_sigma_b, thres
     sparse_evals = []
     for node in sparse_quads[0][0]:
         ishigami_bias.b = node
-        sparse_evals.append(ishigami_bias(X))
+        sparse_evals.append(ishigami_bias(X.transpose()))
 
     fitted_sparse = cp.fit_quadrature(expansion, sparse_quads[0], sparse_quads[1], sparse_evals)
 
@@ -129,7 +130,7 @@ def plot_proportion_no_bias(inference_no_bias, X, sigma=0.1):
     plt.title("Proporción de puntos por encima del umbral para el modelo sin sesgo")
     plt.legend()
 
-    plt.savefig("./code/output/figures/ishigami_proportion_no_bias.png")
+    plt.savefig("./output/figures/ishigami_proportion_no_bias.pdf")
     plt.close()
 
     return proportions_no_bias_minus_std, proportions_no_bias, proportions_no_bias_plus_std
@@ -153,7 +154,7 @@ def plot_proportion_bias(inference_bias, X, sigma=0.1, pce_order=2):
     plt.title("Proporción de puntos por encima del umbral para el modelo con sesgo")
     plt.legend()
     
-    plt.savefig("./code/output/figures/ishigami_proportion_bias.png")
+    plt.savefig("./output/figures/ishigami_proportion_bias.pdf")
     plt.close()
 
     return proportions_bias_minus_std, proportions_bias, proportions_bias_plus_std
@@ -174,7 +175,7 @@ def validate_true_proportion(X):
     # plt.title("True Proportion of Points Above Threshold")
     plt.title("Proporción verdadera de puntos por encima del umbral")
 
-    plt.savefig("./code/output/figures/ishigami_true_proportion.png")
+    plt.savefig("./output/figures/ishigami_true_proportion.pdf")
     plt.close()
 
     return true_proportions
@@ -206,7 +207,7 @@ def compare_proportions(inference_no_bias, inference_bias, X, sigma=0.1, pce_ord
     plt.title("Proporción de puntos por encima del umbral para los modelos con y sin sesgo")
     plt.legend()
 
-    plt.savefig("./code/output/figures/ishigami_proportion_comparison.png")
+    plt.savefig("./output/figures/ishigami_proportion_comparison.pdf")
     plt.close()
 
     return true_proportions, proportions_no_bias_minus_std, proportions_no_bias, proportions_no_bias_plus_std, proportions_bias_minus_std, proportions_bias, proportions_bias_plus_std
@@ -214,7 +215,7 @@ def compare_proportions(inference_no_bias, inference_bias, X, sigma=0.1, pce_ord
 if __name__ == "__main__":
 
     # Load data from CSV file
-    data_path = './code/input/data/ishigami_dataset.csv'
+    data_path = './input/data/ishigami_dataset.csv'
     data = pd.read_csv(data_path)
 
     # Extract features
@@ -232,8 +233,8 @@ if __name__ == "__main__":
 
     # Load the inference data
 
-    inference_no_bias = az.from_netcdf("./code/output/results/calibrate_no_bias_ishigami_3.az")
-    inference_bias = az.from_netcdf("./code/output/results/calibrate_bias_ishigami_3.az")
+    inference_no_bias = az.from_netcdf("./output/results/calibrate_no_bias_ishigami_3.az")
+    inference_bias = az.from_netcdf("./output/results/calibrate_bias_ishigami_3.az")
 
     # Evaluate the point no bias
     compare_proportions(inference_no_bias, inference_bias, X)

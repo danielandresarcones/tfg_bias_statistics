@@ -72,13 +72,13 @@ def predict_cantilever_nobias(inference_data: az.InferenceData, output_path: str
 if __name__ == "__main__":
 
     # Load the inference data
-    inference_data = az.from_netcdf("./code/output/results/calibrate_no_bias_cantilever.az")
+    inference_data = az.from_netcdf("./output/results/calibrate_no_bias_cantilever.az")
 
     # Define the path to the data inputs
-    data_inputs_path = "./code/input/data/cantilever_dataset.csv"
+    data_inputs_path = "./input/data/cantilever_dataset.csv"
 
     # Define the path to save the predictions
-    output_path = "./code/output/results/cantilever_nobias_predictions.csv"
+    output_path = "./output/results/cantilever_nobias_predictions.csv"
 
     # Predict the Canitlever function without bias term
     predict_cantilever_nobias(inference_data, output_path, data_inputs_path, n_samples=500)

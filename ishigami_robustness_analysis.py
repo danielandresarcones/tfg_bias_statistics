@@ -84,7 +84,7 @@ def solve_inverse_problem(data: pd.DataFrame, full_data: pd.DataFrame):
 
     # load data
 
-    data_path = "code/input/data/ishigami_dataset.csv"
+    data_path = "input/data/ishigami_dataset.csv"
     data = pd.read_csv(data_path)
     x1 = data["x1"].values
     x2 = data["x2"].values
@@ -226,7 +226,7 @@ def robustness_analysis(data: pd.DataFrame, predictions_mean:pd.DataFrame, predi
     plt.savefig(output_path)
 
     # Convert D_phi_values to a LaTeX table
-    with open(output_path.replace('.png', '.tex'), 'w') as f:
+    with open(output_path.replace('.pdf', '.tex'), 'w') as f:
         f.write("\\begin{table}[H]\n")
         f.write("\\centering\n")
         f.write("\\begin{tabular}{|c|c|c|c|}\n")
@@ -280,11 +280,11 @@ def influence_analysis(data: pd.DataFrame, n_segments: int, output_path: str):
     influence_matrix_std = influence_matrix_std.transpose()
 
     # Save influence matrices to files
-    np.savetxt(output_path.replace('.png', '_influence_mean.csv'), influence_matrix_mean, delimiter=',')
-    np.savetxt(output_path.replace('.png', '_influence_std.csv'), influence_matrix_std, delimiter=',')
-    np.savetxt(output_path.replace('.png', '_a_mean.csv'), a_mean_list, delimiter=',')
-    np.savetxt(output_path.replace('.png', '_b_mean.csv'), b_mean_list, delimiter=',')
-    np.savetxt(output_path.replace('.png', '_sigma_mean.csv'), sigma_mean_list, delimiter=',')
+    np.savetxt(output_path.replace('.pdf', '_influence_mean.csv'), influence_matrix_mean, delimiter=',')
+    np.savetxt(output_path.replace('.pdf', '_influence_std.csv'), influence_matrix_std, delimiter=',')
+    np.savetxt(output_path.replace('.pdf', '_a_mean.csv'), a_mean_list, delimiter=',')
+    np.savetxt(output_path.replace('.pdf', '_b_mean.csv'), b_mean_list, delimiter=',')
+    np.savetxt(output_path.replace('.pdf', '_sigma_mean.csv'), sigma_mean_list, delimiter=',')
 
     return influence_matrix_mean, influence_matrix_std, a_mean_list, b_mean_list, sigma_mean_list, a_full, b_full, sigma_full
 
@@ -361,8 +361,8 @@ def sensitivity_analysis(influence_matrix_mean, influence_matrix_std, output_pat
     sensitivity_matrix_std = influence_matrix_std.transpose() @ influence_matrix_std
 
     # Save sensitivity matrices to files
-    np.savetxt(output_path.replace('.png', '_sensitivity_mean.csv'), sensitivity_matrix_mean, delimiter=',')
-    np.savetxt(output_path.replace('.png', '_sensitivity_std.csv'), sensitivity_matrix_std, delimiter=',')
+    np.savetxt(output_path.replace('.pdf', '_sensitivity_mean.csv'), sensitivity_matrix_mean, delimiter=',')
+    np.savetxt(output_path.replace('.pdf', '_sensitivity_std.csv'), sensitivity_matrix_std, delimiter=',')
 
     return sensitivity_matrix_mean, sensitivity_matrix_std
     
@@ -395,33 +395,33 @@ def plot_sensitivity_matrix(sensitivity_matrix_mean, sensitivity_matrix_std, out
 
 if __name__ == "__main__":
 
-    data = pd.read_csv('./code/input/data/ishigami_dataset.csv')
-    large_data = pd.read_csv('./code/input/data/ishigami_large_dataset.csv')
+    data = pd.read_csv('./input/data/ishigami_dataset.csv')
+    large_data = pd.read_csv('./input/data/ishigami_large_dataset.csv')
 
-    inference_data_bias = az.from_netcdf('./code/output/results/calibrate_bias_ishigami_3.az')
-    inference_data_no_bias = az.from_netcdf('./code/output/results/calibrate_no_bias_ishigami_3.az')
-    output_path_root_bias = './code/output/figures/ishigami_bias'
-    output_path_root_no_bias = './code/output/figures/ishigami_no_bias'
+    inference_data_bias = az.from_netcdf('./output/results/calibrate_bias_ishigami_3.az')
+    inference_data_no_bias = az.from_netcdf('./output/results/calibrate_no_bias_ishigami_3.az')
+    output_path_root_bias = './output/figures/ishigami_bias'
+    output_path_root_no_bias = './output/figures/ishigami_no_bias'
 
-    predictions_no_bias = pd.read_csv('./code/output/results/ishigami_nobias_predictions.csv', header=0)
-    predictions_bias_mean = pd.read_csv('./code/output/results/ishigami_bias_predictions_at_data_mean.csv', header=0)
-    predictions_bias_std = pd.read_csv('./code/output/results/ishigami_bias_predictions_at_data_std.csv', header=0)
+    predictions_no_bias = pd.read_csv('./output/results/ishigami_nobias_predictions.csv', header=0)
+    predictions_bias_mean = pd.read_csv('./output/results/ishigami_bias_predictions_at_data_mean.csv', header=0)
+    predictions_bias_std = pd.read_csv('./output/results/ishigami_bias_predictions_at_data_std.csv', header=0)
 
-    robustness_analysis(data, predictions_bias_mean, predictions_bias_std, 3, './code/output/figures/ishigami_robustness.png') 
+    robustness_analysis(data, predictions_bias_mean, predictions_bias_std, 3, './output/figures/ishigami_robustness.pdf') 
 
-    influence_matrix_mean, influence_matrix_std, a_mean_list, b_mean_list, sigma_mean_list, a_full, b_full, sigma_full = influence_analysis(data, 3, './code/output/figures/ishigami_influence.png')
-    sensitivity_matrix_mean, sensitivity_matrix_std = sensitivity_analysis(influence_matrix_mean, influence_matrix_std, './code/output/figures/ishigami_sensitivity.png')
+    influence_matrix_mean, influence_matrix_std, a_mean_list, b_mean_list, sigma_mean_list, a_full, b_full, sigma_full = influence_analysis(data, 3, './output/figures/ishigami_influence.pdf')
+    sensitivity_matrix_mean, sensitivity_matrix_std = sensitivity_analysis(influence_matrix_mean, influence_matrix_std, './output/figures/ishigami_sensitivity.pdf')
 
-    influence_matrix_mean = np.loadtxt('./code/output/figures/ishigami_influence_influence_mean.csv', delimiter=',')
-    influence_matrix_std = np.loadtxt('./code/output/figures/ishigami_influence_influence_std.csv', delimiter=',')
-    # a_mean_list = np.loadtxt('./code/output/figures/ishigami_a_mean.csv', delimiter=',')
-    # b_mean_list = np.loadtxt('./code/output/figures/ishigami_b_mean.csv', delimiter=',')
-    # sigma_mean_list = np.loadtxt('./code/output/figures/ishigami_sigma_mean.csv', delimiter=',')
-    # a_full = np.loadtxt('./code/output/figures/ishigami_a_full.csv', delimiter=',')
-    # b_full = np.loadtxt('./code/output/figures/ishigami_b_full.csv', delimiter=',')
-    # sigma_full = np.loadtxt('./code/output/figures/ishigami_sigma_full.csv', delimiter=',')
-    sensitivity_matrix_mean, sensitivity_matrix_std = sensitivity_analysis(influence_matrix_mean, influence_matrix_std, './code/output/figures/ishigami_sensitivity.png')
+    influence_matrix_mean = np.loadtxt('./output/figures/ishigami_influence_influence_mean.csv', delimiter=',')
+    influence_matrix_std = np.loadtxt('./output/figures/ishigami_influence_influence_std.csv', delimiter=',')
+    # a_mean_list = np.loadtxt('./output/figures/ishigami_a_mean.csv', delimiter=',')
+    # b_mean_list = np.loadtxt('./output/figures/ishigami_b_mean.csv', delimiter=',')
+    # sigma_mean_list = np.loadtxt('./output/figures/ishigami_sigma_mean.csv', delimiter=',')
+    # a_full = np.loadtxt('./output/figures/ishigami_a_full.csv', delimiter=',')
+    # b_full = np.loadtxt('./output/figures/ishigami_b_full.csv', delimiter=',')
+    # sigma_full = np.loadtxt('./output/figures/ishigami_sigma_full.csv', delimiter=',')
+    sensitivity_matrix_mean, sensitivity_matrix_std = sensitivity_analysis(influence_matrix_mean, influence_matrix_std, './output/figures/ishigami_sensitivity.pdf')
 
-    plot_influence_matrix(influence_matrix_mean, influence_matrix_std, './code/output/figures/ishigami_influence.png')
-    plot_sensitivity_matrix(sensitivity_matrix_mean, sensitivity_matrix_std, './code/output/figures/ishigami_sensitivity.png')
-    plot_predictions_influence(a_mean_list, b_mean_list, sigma_mean_list, a_full, b_full, sigma_full, './code/output/figures/ishigami_predictions_influence.png')
+    plot_influence_matrix(influence_matrix_mean, influence_matrix_std, './output/figures/ishigami_influence.pdf')
+    plot_sensitivity_matrix(sensitivity_matrix_mean, sensitivity_matrix_std, './output/figures/ishigami_sensitivity.pdf')
+    plot_predictions_influence(a_mean_list, b_mean_list, sigma_mean_list, a_full, b_full, sigma_full, './output/figures/ishigami_predictions_influence.pdf')

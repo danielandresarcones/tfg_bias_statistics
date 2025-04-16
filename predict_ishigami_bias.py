@@ -41,7 +41,8 @@ def predict_ishigami_bias(inference_data: az.InferenceData, output_path: str, da
         evaluation = []
         for node in quadrature_nodes[0]:
             ishigami.b = node
-            prediction = ishigami.evaluate(data_inputs)
+            prediction = ishigami.evaluate(data_inputs.transpose())
+
             evaluation.append(prediction)
 
         fitted_polynomial = cp.fit_quadrature(poly_exp, quadrature_nodes, quadrature_weights, evaluation)
@@ -65,13 +66,13 @@ def predict_ishigami_bias(inference_data: az.InferenceData, output_path: str, da
 if __name__ == "__main__":
 
     # Load the inference data
-    inference_data = az.from_netcdf("./code/output/results/calibrate_bias_ishigami_3.az")
+    inference_data = az.from_netcdf("./output/results/calibrate_bias_ishigami_3.az")
 
     # Define the path to the data inputs
-    data_inputs_path = "./code/input/data/ishigami_dataset.csv"
+    data_inputs_path = "./input/data/ishigami_dataset.csv"
 
     # Define the path to save the predictions
-    output_path = "./code/output/results/ishigami_bias_predictions_at_data.csv"
+    output_path = "./output/results/ishigami_bias_predictions_at_data.csv"
 
     # Predict the Ishigami function without bias term
     predict_ishigami_bias(inference_data, output_path, data_inputs_path, n_samples=500)

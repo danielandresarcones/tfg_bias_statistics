@@ -7,7 +7,7 @@ import seaborn as sns
 
 from tqdm import tqdm
 
-def utility_plot_3d(df: pd.DataFrame, output_path: str, valor: str):
+def utility_plot_3d(df: pd.DataFrame, output_path: str, valor: str, colorbar_limit: tuple = None):
     avg_z_x3 = df.groupby(['x1', 'x2'])['z'].mean().reset_index()
 
     # Average z over x1 for x2 vs x3
@@ -22,33 +22,50 @@ def utility_plot_3d(df: pd.DataFrame, output_path: str, valor: str):
     fig.delaxes(axs[1, 1])
 
     # 2D Scatter Plot: x1 vs x2, avg(z) over x3
-    scatter1 = axs[0, 0].scatter(avg_z_x3['x1'], avg_z_x3['x2'], c=avg_z_x3['z'], cmap='viridis', s=40)
-    axs[0, 0].set_title('x1 vs x2 (avg over x3)')
-    axs[0, 0].set_xlabel('x1')
-    axs[0, 0].set_ylabel('x2')
+    scatter1 = axs[0, 0].scatter(
+        avg_z_x3['x1'], avg_z_x3['x2'], c=avg_z_x3['z'], cmap='viridis', s=40,
+        vmin=colorbar_limit[0] if colorbar_limit else None,
+        vmax=colorbar_limit[1] if colorbar_limit else None
+    )
+    # axs[0, 0].set_title('x1 vs x2 (avg over x3)')
+    axs[0, 0].set_title(r'$x_1$ vs $x_2$ ($x_3$ promedio)')
+    axs[0, 0].set_xlabel(r'$x_1$')
+    axs[0, 0].set_ylabel(r'$x_2$')
     fig.colorbar(scatter1, ax=axs[0, 0], shrink=0.8)
 
     # 2D Scatter Plot: x2 vs x3, avg(z) over x1
-    scatter2 = axs[0, 1].scatter(avg_z_x1['x2'], avg_z_x1['x3'], c=avg_z_x1['z'], cmap='viridis', s=40)
-    axs[0, 1].set_title('x2 vs x3 (avg over x1)')
-    axs[0, 1].set_xlabel('x2')
-    axs[0, 1].set_ylabel('x3')
+    scatter2 = axs[0, 1].scatter(avg_z_x1['x2'], avg_z_x1['x3'], c=avg_z_x1['z'], cmap='viridis', s=40,
+        vmin=colorbar_limit[0] if colorbar_limit else None,
+        vmax=colorbar_limit[1] if colorbar_limit else None
+    )
+    # axs[0, 1].set_title('x2 vs x3 (avg over x1)')
+    axs[0, 1].set_title(r'$x_2$ vs $x_3$ ($x_1$ promedio)')
+    axs[0, 1].set_xlabel(r'$x_2$')
+    axs[0, 1].set_ylabel(r'$x_3$')
     fig.colorbar(scatter2, ax=axs[0, 1], shrink=0.8)
 
     # 2D Scatter Plot: x1 vs x3, avg(z) over x2
-    scatter3 = axs[1, 0].scatter(avg_z_x2['x1'], avg_z_x2['x3'], c=avg_z_x2['z'], cmap='viridis', s=40)
-    axs[1, 0].set_title('x1 vs x3 (avg over x2)')
-    axs[1, 0].set_xlabel('x1')
-    axs[1, 0].set_ylabel('x3')
+    scatter3 = axs[1, 0].scatter(avg_z_x2['x1'], avg_z_x2['x3'], c=avg_z_x2['z'], cmap='viridis', s=40,
+        vmin=colorbar_limit[0] if colorbar_limit else None,
+        vmax=colorbar_limit[1] if colorbar_limit else None
+    )
+    # axs[1, 0].set_title('x1 vs x3 (avg over x2)')
+    axs[1, 0].set_title(r'$x_1$ vs $x_3$ ($x_2$ promedio)')
+    axs[1, 0].set_xlabel(r'$x_1$')
+    axs[1, 0].set_ylabel(r'$x_3$')
     fig.colorbar(scatter3, ax=axs[1, 0], shrink=0.8)
 
     # 3D Scatter Plot: x1, x2, x3 with z as colormap
     ax = fig.add_subplot(224, projection='3d')
-    sc = ax.scatter(df['x1'], df['x2'], df['x3'], c=df['z'], cmap='viridis', s=40)  # Increased dot size
-    ax.set_title('3D Scatter Plot')
-    ax.set_xlabel('x1')
-    ax.set_ylabel('x2')
-    ax.set_zlabel('x3')
+    sc = ax.scatter(df['x1'], df['x2'], df['x3'], c=df['z'], cmap='viridis', s=40,
+        vmin=colorbar_limit[0] if colorbar_limit else None,
+        vmax=colorbar_limit[1] if colorbar_limit else None
+    )  # Increased dot size
+    # ax.set_title('3D Scatter Plot')
+    ax.set_title('Gráfico de dispersión 3D')
+    ax.set_xlabel(r'$x_1$')
+    ax.set_ylabel(r'$x_2$')
+    # ax.set_zlabel(r'$x_3$')
     fig.colorbar(sc, ax=ax, shrink=0.5, orientation='vertical')
 
     plt.savefig(output_path)
@@ -61,22 +78,25 @@ def utility_plot_1d(df: pd.DataFrame, output_path: str, value: str):
     plt.subplot(1, 2, 1)
     # plt.plot(df['z'], label='z values')
     plt.plot(df['z'], label=value)
+    plt.ylim(0, np.percentile(df['z'], 99))
     # plt.axhline(y=df['z'].mean(), color='r', linestyle='--', label='Mean')
-    plt.axhline(y=df['z'].mean(), color='r', linestyle='--', label='Media')
+    plt.axhline(y=df['z'].median(), color='r', linestyle='--', label='Mediana')
+    plt.text(len(df['z']) * 0.8, df['z'].median(), f'Mediana: {df["z"].median():.2f}', color='r', va='bottom', ha='center')
     # plt.xlabel('Index')
     plt.xlabel('Índice')
     # plt.ylabel('z')
     plt.ylabel(value)
     # plt.title('z values and Mean')
-    plt.title(value + 'y media')
+    plt.title(value + ' y mediana')
     plt.legend()
     plt.grid(True)
 
     # Plot histogram
     plt.subplot(1, 2, 2)
-    plt.hist(df['z'], bins=30, edgecolor='k', alpha=0.7)
+    plt.hist(df['z'], bins=30, range=(0, np.percentile(df['z'], 95)), edgecolor='k', alpha=0.7)
     # plt.axvline(df['z'].mean(), color='r', linestyle='--', label='Mean')
-    plt.axvline(df['z'].mean(), color='r', linestyle='--', label='Media')
+    plt.axvline(df['z'].median(), color='r', linestyle='--', label='Mediana')
+    plt.text(df['z'].median() * 1.1, plt.gca().get_ylim()[1] * 0.9, f'Mediana: {df["z"].median():.2f}', color='r', va='bottom', ha='left')
     # plt.xlabel('z')
     plt.xlabel(value)
     # plt.ylabel('Frequency')
@@ -161,7 +181,7 @@ def predictions_analysis(data:pd.DataFrame, predictions: pd.DataFrame, bias: boo
     plt.title('Gráfico de densidad de los valores Z en el índice {}'.format(index))
     plt.legend()
     plt.grid(True)
-    plt.savefig(output_path.replace('.png', '_{}.png'.format(index)))
+    plt.savefig(output_path.replace('.pdf', '_{}.pdf'.format(index)))
 
     return z_values
 
@@ -196,7 +216,8 @@ def plot_z_values_3d(data: pd.DataFrame, predictions: pd.DataFrame, bias: bool, 
         z_values = np.abs(data["y"].values - np.mean(predictions.values, axis=0)) / sigma
 
     df = pd.DataFrame({'x1': data['x1'], 'x2': data['x2'], 'x3':data['x3'],'z': z_values})
-    utility_plot_3d(df, output_path, "Valores Z")
+    colorbar_limit = (0, np.percentile(df['z'], 95))
+    utility_plot_3d(df, output_path, "Valores Z", colorbar_limit=colorbar_limit)
 
 def plot_z_values_1d(data: pd.DataFrame, predictions: pd.DataFrame, bias: bool, sigma: Union[float, pd.DataFrame], output_path: str):
 
@@ -268,7 +289,7 @@ def variance_decomposition_analysis(data: pd.DataFrame, predictions: pd.DataFram
     # plt.title('Variance Decomposition')
     plt.title('Descomposición de varianza')
     plt.grid(True)
-    plt.savefig(output_path.replace('.png', '_variance_decomposition.png'))
+    plt.savefig(output_path.replace('.pdf', '_variance_decomposition.pdf'))
 
     # Plot residuals and variance vector
     plt.figure(figsize=(12, 6))
@@ -288,51 +309,51 @@ def variance_decomposition_analysis(data: pd.DataFrame, predictions: pd.DataFram
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(output_path.replace('.png', '_residuals_sigma.png'))
+    plt.savefig(output_path.replace('.pdf', '_residuals_sigma.pdf'))
     plt.show()
 
 
 if __name__ == "__main__":
 
-    data = pd.read_csv('./code/input/data/ishigami_dataset.csv')
-    large_data = pd.read_csv('./code/input/data/ishigami_large_dataset.csv')
+    data = pd.read_csv('./input/data/ishigami_dataset.csv')
+    large_data = pd.read_csv('./input/data/ishigami_large_dataset.csv')
 
-    inference_data_bias = az.from_netcdf('./code/output/results/calibrate_bias_ishigami_3.az')
-    inference_data_no_bias = az.from_netcdf('./code/output/results/calibrate_no_bias_ishigami_3.az')
-    output_path_root_bias = './code/output/figures/ishigami_bias'
-    output_path_root_no_bias = './code/output/figures/ishigami_no_bias'
+    inference_data_bias = az.from_netcdf('./output/results/calibrate_bias_ishigami_3.az')
+    inference_data_no_bias = az.from_netcdf('./output/results/calibrate_no_bias_ishigami_3.az')
+    output_path_root_bias = './output/figures/ishigami_bias'
+    output_path_root_no_bias = './output/figures/ishigami_no_bias'
 
-    convergence_analysis(inference_data_bias, output_path_root_bias + '_convergence.png')
+    convergence_analysis(inference_data_bias, output_path_root_bias + '_convergence.pdf')
     fit_analysis(inference_data_bias, output_path_root_bias + '_fit.json')
     fit_analysis(inference_data_no_bias, output_path_root_no_bias + '_fit.json')
 
-    predictions_no_bias = pd.read_csv('./code/output/results/ishigami_nobias_predictions.csv', header=0)
-    predictions_bias_mean = pd.read_csv('./code/output/results/ishigami_bias_predictions_mean.csv', header=0)
-    predictions_bias_std = pd.read_csv('./code/output/results/ishigami_bias_predictions_std.csv', header=0)
+    predictions_no_bias = pd.read_csv('./output/results/ishigami_nobias_predictions.csv', header=0)
+    predictions_bias_mean = pd.read_csv('./output/results/ishigami_bias_predictions_mean.csv', header=0)
+    predictions_bias_std = pd.read_csv('./output/results/ishigami_bias_predictions_std.csv', header=0)
 
-    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.1, index = 0, output_path = output_path_root_no_bias + '_predictions.png')
-    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=0, output_path = output_path_root_bias + '_predictions.png')
-    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_0.png')
+    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.1, index = 0, output_path = output_path_root_no_bias + '_predictions.pdf')
+    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=0, output_path = output_path_root_bias + '_predictions.pdf')
+    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_0.pdf')
 
-    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.1, index = 50, output_path = output_path_root_no_bias + '_predictions.png')
-    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=50, output_path = output_path_root_bias + '_predictions.png')
-    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_50.png')
+    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.1, index = 50, output_path = output_path_root_no_bias + '_predictions.pdf')
+    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=50, output_path = output_path_root_bias + '_predictions.pdf')
+    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_50.pdf')
 
-    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.1, index = 90, output_path = output_path_root_no_bias + '_predictions.png')
-    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=90, output_path = output_path_root_bias + '_predictions.png')
-    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_90.png')
+    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.1, index = 90, output_path = output_path_root_no_bias + '_predictions.pdf')
+    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=90, output_path = output_path_root_bias + '_predictions.pdf')
+    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_90.pdf')
 
-    plot_z_values_3d(large_data, predictions_no_bias, bias=False, sigma= 0.1,output_path= output_path_root_no_bias + '_z_value_3d.png')
-    plot_z_values_3d(large_data, predictions_bias_mean, bias=True, sigma = predictions_bias_std,output_path= output_path_root_bias + '_z_value_3d.png')
+    plot_z_values_3d(large_data, predictions_no_bias, bias=False, sigma= 0.1,output_path= output_path_root_no_bias + '_z_value_3d.pdf')
+    plot_z_values_3d(large_data, predictions_bias_mean, bias=True, sigma = predictions_bias_std,output_path= output_path_root_bias + '_z_value_3d.pdf')
 
-    plot_residuals_3d(large_data, predictions_no_bias,output_path= output_path_root_no_bias + '_residuals_3d.png')
-    plot_residuals_3d(large_data, predictions_bias_mean,output_path= output_path_root_bias + '_residuals_3d.png')
+    plot_residuals_3d(large_data, predictions_no_bias,output_path= output_path_root_no_bias + '_residuals_3d.pdf')
+    plot_residuals_3d(large_data, predictions_bias_mean,output_path= output_path_root_bias + '_residuals_3d.pdf')
 
-    plot_z_values_1d(large_data, predictions_no_bias, bias=False, sigma= 0.1,output_path= output_path_root_no_bias + '_z_value_1d.png')
-    plot_z_values_1d(large_data, predictions_bias_mean, bias=True, sigma = predictions_bias_std,output_path= output_path_root_bias + '_z_value_1d.png')
+    plot_z_values_1d(large_data, predictions_no_bias, bias=False, sigma= 0.1,output_path= output_path_root_no_bias + '_z_value_1d.pdf')
+    plot_z_values_1d(large_data, predictions_bias_mean, bias=True, sigma = predictions_bias_std,output_path= output_path_root_bias + '_z_value_1d.pdf')
 
-    plot_residuals_1d(large_data, predictions_no_bias,output_path= output_path_root_no_bias + '_residuals_1d.png')
-    plot_residuals_1d(large_data, predictions_bias_mean,output_path= output_path_root_bias + '_residuals_1d.png')
+    plot_residuals_1d(large_data, predictions_no_bias,output_path= output_path_root_no_bias + '_residuals_1d.pdf')
+    plot_residuals_1d(large_data, predictions_bias_mean,output_path= output_path_root_bias + '_residuals_1d.pdf')
 
-    variance_decomposition_analysis(large_data, predictions_no_bias, bias=False, sigma= 0.1,output_path= output_path_root_no_bias + '_variance_decomposition.png')
-    variance_decomposition_analysis(large_data, predictions_bias_mean, bias=True, sigma = predictions_bias_std,output_path= output_path_root_bias + '_variance_decomposition.png')
+    variance_decomposition_analysis(large_data, predictions_no_bias, bias=False, sigma= 0.1,output_path= output_path_root_no_bias + '_variance_decomposition.pdf')
+    variance_decomposition_analysis(large_data, predictions_bias_mean, bias=True, sigma = predictions_bias_std,output_path= output_path_root_bias + '_variance_decomposition.pdf')

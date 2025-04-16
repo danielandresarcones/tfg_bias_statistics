@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from cantilever_function import CantileverBeam
 
 
-def evaluate_true_deflection(threshold, dataset_path='./code/input/data/cantilever_dataset.csv'):
+def evaluate_true_deflection(threshold, dataset_path='./input/data/cantilever_dataset.csv'):
     """Get the true deflection of points above the threshold."""
     # Load dataset
     dataset = pd.read_csv(dataset_path)
@@ -121,7 +121,7 @@ def plot_deflection_no_bias(inference_no_bias, X, sigma=0.01):
     plt.title("Proporción de puntos por encima del umbral para el modelo sin sesgo")
     plt.legend()
 
-    plt.savefig("./code/output/figures/cantilever_deflection_no_bias.png")
+    plt.savefig("./output/figures/cantilever_deflection_no_bias.pdf")
     plt.close()
 
     return deflections_no_bias_minus_std, deflections_no_bias, deflections_no_bias_plus_std
@@ -144,12 +144,12 @@ def plot_deflection_bias(inference_bias, X, sigma=0.01, pce_order=2):
     plt.title("Proporción de puntos por encima del umbral para el modelo con sesgo")
     plt.legend()
     
-    plt.savefig("./code/output/figures/cantilever_deflection_bias.png")
+    plt.savefig("./output/figures/cantilever_deflection_bias.pdf")
     plt.close()
 
     return deflections_bias_minus_std, deflections_bias, deflections_bias_plus_std
 
-def validate_true_deflection(thresholds, dataset_path='./code/input/data/cantilever_dataset.csv'):
+def validate_true_deflection(thresholds, dataset_path='./input/data/cantilever_dataset.csv'):
 
     true_deflections = []
     for threshold in thresholds:
@@ -164,7 +164,7 @@ def validate_true_deflection(thresholds, dataset_path='./code/input/data/cantile
     # plt.title("True Proportion of Points Above Threshold")
     plt.title("Proporción verdadera de puntos por encima del umbral")
 
-    plt.savefig("./code/output/figures/cantilever_true_deflection.png")
+    plt.savefig("./output/figures/cantilever_true_deflection.pdf")
     plt.close()
 
     return true_deflections
@@ -196,7 +196,7 @@ def compare_deflections(inference_no_bias, inference_bias, X, sigma=0.01, pce_or
     plt.title("Número de cargas por encima del umbral para los modelos sin sesgo y con sesgo")
     plt.legend()
 
-    plt.savefig("./code/output/figures/cantilever_deflection_comparison.png")
+    plt.savefig("./output/figures/cantilever_deflection_comparison.pdf")
     plt.close()
 
     return true_deflections, deflections_no_bias_minus_std, deflections_no_bias, deflections_no_bias_plus_std, deflections_bias_minus_std, deflections_bias, deflections_bias_plus_std
@@ -204,7 +204,7 @@ def compare_deflections(inference_no_bias, inference_bias, X, sigma=0.01, pce_or
 if __name__ == "__main__":
 
     # Load data from CSV file
-    data_path = './code/input/data/cantilever_dataset.csv'
+    data_path = './input/data/cantilever_dataset.csv'
     data = pd.read_csv(data_path)
 
     # Extract features
@@ -220,8 +220,8 @@ if __name__ == "__main__":
 
     # Load the inference data
 
-    inference_no_bias = az.from_netcdf("./code/output/results/calibrate_no_bias_cantilever.az")
-    inference_bias = az.from_netcdf("./code/output/results/calibrate_bias_cantilever.az")
+    inference_no_bias = az.from_netcdf("./output/results/calibrate_no_bias_cantilever.az")
+    inference_bias = az.from_netcdf("./output/results/calibrate_bias_cantilever.az")
 
     # Evaluate the point no bias
     compare_deflections(inference_no_bias, inference_bias, X)

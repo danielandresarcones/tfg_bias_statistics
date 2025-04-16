@@ -32,7 +32,7 @@ def predict_ishigami_nobias(inference_data: az.InferenceData, output_path: str, 
         ishigami.b = b
 
         # Evaluate the Ishigami function at the data inputs
-        prediction = ishigami.evaluate(data_inputs)
+        prediction = ishigami.evaluate(data_inputs.transpose())
         predictions.append(prediction)
 
     # Convert predictions to a DataFrame
@@ -44,13 +44,13 @@ def predict_ishigami_nobias(inference_data: az.InferenceData, output_path: str, 
 if __name__ == "__main__":
 
     # Load the inference data
-    inference_data = az.from_netcdf("./code/output/results/calibrate_no_bias_ishigami_3.az")
+    inference_data = az.from_netcdf("./output/results/calibrate_no_bias_ishigami_3.az")
 
     # Define the path to the data inputs
-    data_inputs_path = "./code/input/data/ishigami_large_dataset.csv"
+    data_inputs_path = "./input/data/ishigami_large_dataset.csv"
 
     # Define the path to save the predictions
-    output_path = "./code/output/results/ishigami_nobias_predictions.csv"
+    output_path = "./output/results/ishigami_nobias_predictions.csv"
 
     # Predict the Ishigami function without bias term
     predict_ishigami_nobias(inference_data, output_path, data_inputs_path, n_samples=500)

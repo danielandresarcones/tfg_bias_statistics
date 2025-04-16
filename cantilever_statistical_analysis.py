@@ -16,13 +16,13 @@ def utility_plot_1d(df: pd.DataFrame, output_path: str, value: str):
     plt.subplot(1, 2, 1)
     plt.plot(df['z'], label=value)
     # plt.axhline(y=df['z'].mean(), color='r', linestyle='--', label='Mean')
-    plt.axhline(y=df['z'].mean(), color='r', linestyle='--', label='Media')
+    plt.axhline(y=df['z'].median(), color='r', linestyle='--', label='Mediana')
     # plt.xlabel('Index')
     plt.xlabel('Carga')
     # plt.ylabel('z')
     plt.ylabel(value)
     # plt.title('z values and Mean')
-    plt.title(f'{value} y Media')
+    plt.title(f'{value} y Mediana')
     plt.legend()
     plt.grid(True)
 
@@ -30,7 +30,8 @@ def utility_plot_1d(df: pd.DataFrame, output_path: str, value: str):
     plt.subplot(1, 2, 2)
     plt.hist(df['z'], bins=30, edgecolor='k', alpha=0.7)
     # plt.axvline(df['z'].mean(), color='r', linestyle='--', label='Mean')
-    plt.axvline(df['z'].mean(), color='r', linestyle='--', label='Media')
+    plt.axvline(df['z'].median(), color='r', linestyle='--', label='Mediana')
+    plt.text(df['z'].median() * 1.1, plt.gca().get_ylim()[1] * 0.9, f'Mediana: {df["z"].median():.2f}', color='r', va='bottom', ha='left')
     # plt.xlabel('z')
     plt.xlabel(value)
     # plt.ylabel('Frequency')
@@ -99,7 +100,8 @@ def predictions_analysis(data:pd.DataFrame, predictions: pd.DataFrame, bias: boo
     plt.figure(figsize=(10, 6))
     sns.kdeplot(z_values, fill=True)
     # plt.axvline(np.mean(z_values), color='r', linestyle='--', label='Mean')
-    plt.axvline(np.mean(z_values), color='r', linestyle='--', label='Media')
+    plt.axvline(np.median(z_values), color='r', linestyle='--', label='Mediana')
+    plt.text(np.median(z_values) * 1.1, plt.gca().get_ylim()[1] * 0.9, f'Mediana: {np.median(z_values):.2f}', color='r', va='bottom', ha='left')
     plt.axvline(1.96, color='k', linestyle='--', label=r'Normal $3\sigma$')
     # plt.xlabel('Z-values')
     plt.xlabel('Valores Z')
@@ -109,7 +111,7 @@ def predictions_analysis(data:pd.DataFrame, predictions: pd.DataFrame, bias: boo
     plt.title('Gráfico de densidad de valores Z en el índice {}'.format(index))
     plt.legend()
     plt.grid(True)
-    plt.savefig(output_path.replace('.png', '_{}.png'.format(index)))
+    plt.savefig(output_path.replace('.pdf', '_{}.pdf'.format(index)))
 
     return z_values
 
@@ -121,10 +123,10 @@ def plot_comparison_z_values(z_values_no_bias: np.ndarray, z_values_bias: np.nda
     sns.kdeplot(z_values_no_bias, fill=True, color="r", label='Sin Sesgo')
     # sns.kdeplot(z_values_bias, fill=True, color="g", label='Bias')
     sns.kdeplot(z_values_bias, fill=True, color="g", label='Con Sesgo')
-    # plt.axvline(np.mean(z_values_no_bias), color='r', linestyle='--', label='Mean No Bias')
-    plt.axvline(np.mean(z_values_no_bias), color='r', linestyle='--', label='Media Sin Sesgo')
-    # plt.axvline(np.mean(z_values_bias), color='g', linestyle='--', label='Mean Bias')
-    plt.axvline(np.mean(z_values_bias), color='g', linestyle='--', label='Media Con Sesgo')
+    # plt.axvline(np.median(z_values_no_bias), color='r', linestyle='--', label='Median No Bias')
+    plt.axvline(np.median(z_values_no_bias), color='r', linestyle='--', label='Mediana Sin Sesgo')
+    # plt.axvline(np.median(z_values_bias), color='g', linestyle='--', label='Median Bias')
+    plt.axvline(np.median(z_values_bias), color='g', linestyle='--', label='Mediana Con Sesgo')
     plt.axvline(1.96, color='k', linestyle='--', label=r'Normal $3\sigma$')
     # plt.xlabel('Z-values')
     plt.xlabel('Valores Z')
@@ -175,7 +177,7 @@ def variance_decomposition_analysis(data: pd.DataFrame, predictions: pd.DataFram
         variance_vector = np.square(float(sigma) * np.ones(len(residuals)))  # Scalar case
 
     # Compute explained and unexplained variance
-    explained_variance = np.sum(variance_vector)
+    explained_variance = min(np.sum(variance_vector), total_variance)
     unexplained_variance = total_variance - explained_variance
 
     # Print variance values
@@ -199,7 +201,7 @@ def variance_decomposition_analysis(data: pd.DataFrame, predictions: pd.DataFram
     # plt.title('Variance Decomposition')
     plt.title('Descomposición de varianza')
     plt.grid(True)
-    plt.savefig(output_path.replace('.png', '_variance_decomposition.png'))
+    plt.savefig(output_path.replace('.pdf', '_variance_decomposition.pdf'))
 
     # Plot residuals and variance vector
     plt.figure(figsize=(12, 6))
@@ -219,44 +221,44 @@ def variance_decomposition_analysis(data: pd.DataFrame, predictions: pd.DataFram
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(output_path.replace('.png', '_residuals_sigma.png'))
+    plt.savefig(output_path.replace('.pdf', '_residuals_sigma.pdf'))
     # plt.show()
 
 if __name__ == "__main__":
 
-    data = pd.read_csv('./code/input/data/cantilever_dataset.csv')
-    # large_data = pd.read_csv('./code/input/data/cantilever_large_dataset.csv')
+    data = pd.read_csv('./input/data/cantilever_dataset.csv')
+    # large_data = pd.read_csv('./input/data/cantilever_large_dataset.csv')
 
-    inference_data_bias = az.from_netcdf('./code/output/results/calibrate_bias_cantilever.az')
-    inference_data_no_bias = az.from_netcdf('./code/output/results/calibrate_no_bias_cantilever.az')
-    output_path_root_bias = './code/output/figures/cantilever_bias'
-    output_path_root_no_bias = './code/output/figures/cantilever_no_bias'
+    inference_data_bias = az.from_netcdf('./output/results/calibrate_bias_cantilever.az')
+    inference_data_no_bias = az.from_netcdf('./output/results/calibrate_no_bias_cantilever.az')
+    output_path_root_bias = './output/figures/cantilever_bias'
+    output_path_root_no_bias = './output/figures/cantilever_no_bias'
 
-    # convergence_analysis(inference_data_bias, output_path_root_bias + '_convergence.png')
+    # convergence_analysis(inference_data_bias, output_path_root_bias + '_convergence.pdf')
     # fit_analysis(inference_data_bias, output_path_root_bias + '_fit.json')
     # fit_analysis(inference_data_no_bias, output_path_root_no_bias + '_fit.json')
 
-    predictions_no_bias = pd.read_csv('./code/output/results/cantilever_nobias_predictions.csv', header=0)
-    predictions_bias_mean = pd.read_csv('./code/output/results/cantilever_bias_predictions_mean.csv', header=0)
-    predictions_bias_std = pd.read_csv('./code/output/results/cantilever_bias_predictions_std.csv', header=0)
+    predictions_no_bias = pd.read_csv('./output/results/cantilever_nobias_predictions.csv', header=0)
+    predictions_bias_mean = pd.read_csv('./output/results/cantilever_bias_predictions_mean.csv', header=0)
+    predictions_bias_std = pd.read_csv('./output/results/cantilever_bias_predictions_std.csv', header=0)
 
-    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.01, index = 0, output_path = output_path_root_no_bias + '_predictions.png')
-    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=0, output_path = output_path_root_bias + '_predictions.png')
-    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_0.png')
+    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.01, index = 0, output_path = output_path_root_no_bias + '_predictions.pdf')
+    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=0, output_path = output_path_root_bias + '_predictions.pdf')
+    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_0.pdf')
 
-    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.01, index = 50, output_path = output_path_root_no_bias + '_predictions.png')
-    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=50, output_path = output_path_root_bias + '_predictions.png')
-    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_50.png')
+    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.01, index = 50, output_path = output_path_root_no_bias + '_predictions.pdf')
+    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=50, output_path = output_path_root_bias + '_predictions.pdf')
+    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_50.pdf')
 
-    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.01, index = 90, output_path = output_path_root_no_bias + '_predictions.png')
-    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=90, output_path = output_path_root_bias + '_predictions.png')
-    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_90.png')
+    z_values_no_bias = predictions_analysis(data, predictions_no_bias, bias=False, sigma= 0.01, index = 90, output_path = output_path_root_no_bias + '_predictions.pdf')
+    z_values_bias = predictions_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std, index=90, output_path = output_path_root_bias + '_predictions.pdf')
+    plot_comparison_z_values(z_values_no_bias, z_values_bias, output_path_root_bias + '_comparison_90.pdf')
 
-    plot_z_values_1d(data, predictions_no_bias, bias=False, sigma= 0.01, output_path= output_path_root_no_bias + '_z_value_1d.png')
-    plot_z_values_1d(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std,output_path= output_path_root_bias + '_z_value_1d.png')
+    plot_z_values_1d(data, predictions_no_bias, bias=False, sigma= 0.01, output_path= output_path_root_no_bias + '_z_value_1d.pdf')
+    plot_z_values_1d(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std,output_path= output_path_root_bias + '_z_value_1d.pdf')
 
-    plot_residuals_1d(data, predictions_no_bias,output_path= output_path_root_no_bias + '_residuals_1d.png')
-    plot_residuals_1d(data, predictions_bias_mean,output_path= output_path_root_bias + '_residuals_1d.png')
+    plot_residuals_1d(data, predictions_no_bias,output_path= output_path_root_no_bias + '_residuals_1d.pdf')
+    plot_residuals_1d(data, predictions_bias_mean,output_path= output_path_root_bias + '_residuals_1d.pdf')
 
-    variance_decomposition_analysis(data, predictions_no_bias, bias=False, sigma= 0.01,output_path= output_path_root_no_bias + '_variance_decomposition.png')
-    variance_decomposition_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std,output_path= output_path_root_bias + '_variance_decomposition.png')
+    variance_decomposition_analysis(data, predictions_no_bias, bias=False, sigma= 0.01,output_path= output_path_root_no_bias + '_variance_decomposition.pdf')
+    variance_decomposition_analysis(data, predictions_bias_mean, bias=True, sigma = predictions_bias_std,output_path= output_path_root_bias + '_variance_decomposition.pdf')

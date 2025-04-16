@@ -2,7 +2,7 @@ from ishigami_function_3d import IshigamiFunction
 import numpy as np
 
 
-PATH = "code/input/data/ishigami_dataset.csv"
+PATH = "input/data/ishigami_dataset.csv"
 
 def generate_random_dataset(n_samples, a = 7, b = 0.1, ranges=[(-np.pi, np.pi)]*3, noise_std=0.1):
     ishigami = IshigamiFunction(a=a, b=b)
@@ -17,6 +17,6 @@ if __name__ == "__main__":
 
     generate_random_dataset(100)
     print(f"Dataset saved to {PATH}")
-    PATH = "code/input/data/ishigami_large_dataset.csv"
+    PATH = "input/data/ishigami_large_dataset.csv"
     generate_random_dataset(1000)
     print(f"Dataset saved to {PATH}")

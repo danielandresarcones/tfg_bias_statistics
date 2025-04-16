@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
     # load data
 
-    data_path = "code/input/data/ishigami_dataset.csv"
+    data_path = "input/data/ishigami_dataset.csv"
     data = pd.read_csv(data_path)
     x1 = data["x1"].values
     x2 = data["x2"].values
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     # true_values = {"a": 7.0, "b": 0.1, "sigma": 0.1}
 
 
-    output_path = f"code/output/results/calibrate_no_bias_ishigami_{degree}.az"
+    output_path = f"output/results/calibrate_no_bias_ishigami_{degree}.az"
     az.to_netcdf(inference_data, output_path)
 
     pair_plot_array = create_pair_plot(

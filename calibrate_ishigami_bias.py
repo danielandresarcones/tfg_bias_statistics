@@ -60,7 +60,7 @@ class IshigamiBiased(ForwardModelBase):
         sparse_evals = []
         for node in sparse_quads[0][0]:
             self.ishigami.b = node
-            sparse_evals.append(self.ishigami(np.array([x1, x2, x3]).transpose()))
+            sparse_evals.append(self.ishigami(np.array([x1, x2, x3])))
 
         # fit the polynomial chaos expansion
         fitted_sparse = cp.fit_quadrature(
@@ -102,7 +102,7 @@ def run_calibrate_ishigami_bias(degree=3):
 
     # load data
 
-    data_path = "code/input/data/ishigami_dataset.csv"
+    data_path = "input/data/ishigami_dataset.csv"
     data = pd.read_csv(data_path)
     x1 = data["x1"].values
     x2 = data["x2"].values
@@ -135,7 +135,7 @@ def run_calibrate_ishigami_bias(degree=3):
     # true_values = {"a": 7.0, "b": 0.1, "sigma": 0.1}
 
 
-    output_path = f"code/output/results/calibrate_bias_ishigami_{degree}.az"
+    output_path = f"output/results/calibrate_bias_ishigami_{degree}.az"
     az.to_netcdf(inference_data, output_path)
 
     pair_plot_array = create_pair_plot(
@@ -147,7 +147,7 @@ def run_calibrate_ishigami_bias(degree=3):
         # title="Sampling results from emcee-Solver (pair plot)",
         title="Gráfico de pares (con sesgo)",
     )
-    pair_plot_array.ravel()[0].figure.savefig(f"code/output/figures/pair_plot_ishigami_{degree}.png")
+    pair_plot_array.ravel()[0].figure.savefig(f"output/figures/pair_plot_ishigami_{degree}.pdf")
   
     trace_plot_array = create_trace_plot(
         inference_data,
@@ -156,7 +156,7 @@ def run_calibrate_ishigami_bias(degree=3):
         # title="Sampling results from emcee-Solver (trace plot)",
         title="Trazado de la cadena (con sesgo)",
     )
-    trace_plot_array.ravel()[0].figure.savefig(f"code/output/figures/trace_plot_ishigami_{degree}.png")
+    trace_plot_array.ravel()[0].figure.savefig(f"output/figures/trace_plot_ishigami_{degree}.pdf")
 
 if __name__ == "__main__":
     run_calibrate_ishigami_bias(degree=3)

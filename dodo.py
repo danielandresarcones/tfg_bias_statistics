@@ -58,8 +58,8 @@ def task_calibrate_ishigami_bias():
         'file_dep': ['calibrate_ishigami_bias.py', 'ishigami_function_3d.py', 'input/data/ishigami_dataset.csv'],
         'targets': [
             'output/results/calibrate_bias_ishigami_3.az',
-            'output/figures/pair_plot_ishigami_3.png',
-            'output/figures/trace_plot_ishigami_3.png'
+            'output/figures/pair_plot_ishigami_3.pdf',
+            'output/figures/trace_plot_ishigami_3.pdf'
         ],
         'task_dep': ['generate_ishigami_dataset'],
         'verbosity': 2,
@@ -110,10 +110,10 @@ def task_qoi_ishigami():
             'output/results/calibrate_bias_ishigami_3.az'
         ],
         'targets': [
-            'output/figures/ishigami_true_proportion.png',
-            'output/figures/ishigami_proportion_no_bias.png',
-            'output/figures/ishigami_proportion_bias.png',
-            'output/figures/ishigami_proportion_comparison.png'
+            'output/figures/ishigami_true_proportion.pdf',
+            'output/figures/ishigami_proportion_no_bias.pdf',
+            'output/figures/ishigami_proportion_bias.pdf',
+            'output/figures/ishigami_proportion_comparison.pdf'
         ],
         'task_dep': ['calibrate_ishigami_nobias', 'calibrate_ishigami_bias'],
         'verbosity': 2,
@@ -134,10 +134,10 @@ def task_ishigami_statistical_analysis():
             'output/results/ishigami_bias_predictions_at_data_std.csv'
         ],
         'targets': [
-            'output/figures/ishigami_no_bias_variance_decomposition.png',
-            'output/figures/ishigami_bias_variance_decomposition.png',
-            'output/figures/ishigami_no_bias_variance_decomposition_residuals_sigma.png',
-            'output/figures/ishigami_bias_variance_decomposition_residuals_sigma.png'
+            'output/figures/ishigami_no_bias_variance_decomposition.pdf',
+            'output/figures/ishigami_bias_variance_decomposition.pdf',
+            'output/figures/ishigami_no_bias_variance_decomposition_residuals_sigma.pdf',
+            'output/figures/ishigami_bias_variance_decomposition_residuals_sigma.pdf'
         ],
         'task_dep': ['predict_ishigami_nobias', 'predict_ishigami_bias'],
         'verbosity': 2,
@@ -157,10 +157,10 @@ def task_ishigami_robustness_analysis():
             'output/results/ishigami_bias_predictions_at_data_std.csv'
         ],
         'targets': [
-            'output/figures/ishigami_robustness.png',
+            'output/figures/ishigami_robustness.pdf',
             'output/figures/ishigami_robustness.tex',
-            'output/figures/ishigami_influence.png',
-            'output/figures/ishigami_sensitivity.png'
+            'output/figures/ishigami_influence.pdf',
+            'output/figures/ishigami_sensitivity.pdf'
         ],
         'task_dep': ['predict_ishigami_bias'],
         'verbosity': 2,
@@ -193,7 +193,7 @@ def task_generate_cantilever_dataset():
     return {
         'actions': ['python generate_cantilever_dataset.py'],
         'file_dep': ['generate_cantilever_dataset.py', 'cantilever_function.py'],
-        'targets': ['input/data/cantilever_dataset.csv', 'output/figures/cantilever_dataset.png'],
+        'targets': ['input/data/cantilever_dataset.csv', 'output/figures/cantilever_dataset.pdf'],
         'task_dep': ['create_directories'],
         'verbosity': 2,
     }
@@ -205,8 +205,8 @@ def task_calibrate_cantilever_nobias():
         'file_dep': ['calibrate_cantilever_nobias.py', 'cantilever_function.py', 'input/data/cantilever_dataset.csv'],
         'targets': [
             'output/results/calibrate_no_bias_cantilever.az',
-            'output/figures/trace_plot_cantilever_no_bias.png',
-            'output/figures/posterior_plot_cantilever_no_bias.png'
+            'output/figures/trace_plot_cantilever_no_bias.pdf',
+            'output/figures/posterior_plot_cantilever_no_bias.pdf'
         ],
         'task_dep': ['generate_cantilever_dataset'],
         'verbosity': 2,
@@ -219,9 +219,9 @@ def task_calibrate_cantilever_bias():
         'file_dep': ['calibrate_cantilever_bias.py', 'cantilever_function.py', 'input/data/cantilever_dataset.csv'],
         'targets': [
             'output/results/calibrate_bias_cantilever.az',
-            'output/figures/pair_plot_cantilever_bias.png',
-            'output/figures/trace_plot_cantilever_bias.png',
-            'output/figures/posterior_plot_cantilever_bias.png'
+            'output/figures/pair_plot_cantilever_bias.pdf',
+            'output/figures/trace_plot_cantilever_bias.pdf',
+            'output/figures/posterior_plot_cantilever_bias.pdf'
         ],
         'task_dep': ['generate_cantilever_dataset'],
         'verbosity': 2,
@@ -276,10 +276,10 @@ def task_qoi_cantilever():
             'output/results/calibrate_bias_cantilever.az'
         ],
         'targets': [
-            'output/figures/cantilever_true_deflection.png',
-            'output/figures/cantilever_deflection_no_bias.png',
-            'output/figures/cantilever_deflection_bias.png',
-            'output/figures/cantilever_deflection_comparison.png'
+            'output/figures/cantilever_true_deflection.pdf',
+            'output/figures/cantilever_deflection_no_bias.pdf',
+            'output/figures/cantilever_deflection_bias.pdf',
+            'output/figures/cantilever_deflection_comparison.pdf'
         ],
         'task_dep': ['calibrate_cantilever_nobias', 'calibrate_cantilever_bias'],
         'verbosity': 2,
@@ -299,40 +299,40 @@ def task_cantilever_statistical_analysis():
             'output/results/cantilever_bias_predictions_std.csv'
         ],
         'targets': [
-            'output/figures/cantilever_no_bias_variance_decomposition.png',
-            'output/figures/cantilever_bias_variance_decomposition.png',
-            'output/figures/cantilever_no_bias_variance_decomposition_residuals_sigma.png',
-            'output/figures/cantilever_bias_variance_decomposition_residuals_sigma.png',
-            'output/figures/cantilever_no_bias_z_value_1d.png',
-            'output/figures/cantilever_bias_z_value_1d.png',
-            'output/figures/cantilever_no_bias_residuals_1d.png',
-            'output/figures/cantilever_bias_residuals_1d.png'
+            'output/figures/cantilever_no_bias_variance_decomposition.pdf',
+            'output/figures/cantilever_bias_variance_decomposition.pdf',
+            'output/figures/cantilever_no_bias_variance_decomposition_residuals_sigma.pdf',
+            'output/figures/cantilever_bias_variance_decomposition_residuals_sigma.pdf',
+            'output/figures/cantilever_no_bias_z_value_1d.pdf',
+            'output/figures/cantilever_bias_z_value_1d.pdf',
+            'output/figures/cantilever_no_bias_residuals_1d.pdf',
+            'output/figures/cantilever_bias_residuals_1d.pdf'
         ],
         'task_dep': ['predict_cantilever_nobias', 'predict_cantilever_bias'],
         'verbosity': 2,
     }
 
-def task_cantilever_robustness_analysis():
-    """Run robustness analysis on Cantilever beam models."""
-    return {
-        'actions': ['python cantilever_robustness_analysis.py'],
-        'file_dep': [
-            'cantilever_robustness_analysis.py',
-            'cantilever_function.py',
-            'calibrate_cantilever_bias.py',
-            'input/data/cantilever_dataset.csv',
-            'output/results/calibrate_bias_cantilever.az',
-            'output/results/calibrate_no_bias_cantilever.az',
-            'output/results/cantilever_bias_predictions_mean.csv',
-            'output/results/cantilever_bias_predictions_std.csv'
-        ],
-        'targets': [
-            'output/figures/cantilever_influence.png',
-            'output/figures/cantilever_sensitivity.png'
-        ],
-        'task_dep': ['predict_cantilever_bias'],
-        'verbosity': 2,
-    }
+# def task_cantilever_robustness_analysis():
+#     """Run robustness analysis on Cantilever beam models."""
+#     return {
+#         'actions': ['python cantilever_robustness_analysis.py'],
+#         'file_dep': [
+#             'cantilever_robustness_analysis.py',
+#             'cantilever_function.py',
+#             'calibrate_cantilever_bias.py',
+#             'input/data/cantilever_dataset.csv',
+#             'output/results/calibrate_bias_cantilever.az',
+#             'output/results/calibrate_no_bias_cantilever.az',
+#             'output/results/cantilever_bias_predictions_mean.csv',
+#             'output/results/cantilever_bias_predictions_std.csv'
+#         ],
+#         'targets': [
+#             'output/figures/cantilever_influence.pdf',
+#             'output/figures/cantilever_sensitivity.pdf'
+#         ],
+#         'task_dep': ['predict_cantilever_bias'],
+#         'verbosity': 2,
+#     }
 
 def task_decision_rule_cantilever():
     """Run decision rule analysis on Cantilever beam models."""
@@ -346,8 +346,8 @@ def task_decision_rule_cantilever():
             'output/results/calibrate_no_bias_cantilever.az'
         ],
         'targets': [
-            'output/figures/decisions_cantilever_no_bias.png',
-            'output/figures/decisions_cantilever_bias.png',
+            'output/figures/decisions_cantilever_no_bias.pdf',
+            'output/figures/decisions_cantilever_bias.pdf',
             'output/results/decisions_cantilever_no_bias.csv',
             'output/results/decisions_cantilever_bias.csv'
         ],
@@ -376,7 +376,7 @@ def task_all():
             'predict_cantilever_bias',
             'qoi_cantilever',
             'cantilever_statistical_analysis',
-            'cantilever_robustness_analysis',
+            # 'cantilever_robustness_analysis',
             'decision_rule_cantilever'
         ],
         'verbosity': 2,
